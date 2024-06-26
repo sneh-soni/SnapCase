@@ -1,3 +1,4 @@
+import { AnimatedReviews } from "@/components/Animated";
 import { Icons } from "@/components/Icons";
 import Phone from "@/components/Phone";
 import MaxWidthWrapper from "@/components/maxWidthWrapper";
@@ -200,6 +201,11 @@ export default function Home() {
             </div>
           </div>
         </MaxWidthWrapper>
+
+        {/* Animated Phones Section */}
+        <div className="pt-16">
+          <AnimatedReviews />
+        </div>
       </section>
     </div>
   );
