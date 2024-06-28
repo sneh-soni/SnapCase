@@ -1,7 +1,7 @@
 import { AnimatedReviews } from "@/components/Animated";
 import { Icons } from "@/components/Icons";
 import Phone from "@/components/Phone";
-import MaxWidthWrapper from "@/components/maxWidthWrapper";
+import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import { buttonVariants } from "@/components/ui/button";
 import { ArrowRight, Check, Star } from "lucide-react";
 import Link from "next/link";
