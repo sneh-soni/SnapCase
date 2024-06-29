@@ -4,12 +4,22 @@ import HandleComponent from "@/components/HandleComponent";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { Radio, RadioGroup } from "@headlessui/react";
+import { cn, formatPrice } from "@/lib/utils";
+import {
+  Radio,
+  RadioGroup,
+  Label as RadioGroupLabel,
+  Description as RadioGroupDescription,
+} from "@headlessui/react";
 import NextImage from "next/image";
 import { Rnd } from "react-rnd";
 import { useState } from "react";
-import { COLORS, MODELS } from "@/validators/option-validator";
+import {
+  COLORS,
+  FINISHES,
+  MATERIALS,
+  MODELS,
+} from "@/validators/option-validator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,9 +43,13 @@ const DesignConfigurator = ({
   const [options, setOptions] = useState<{
     color: (typeof COLORS)[number];
     model: (typeof MODELS.options)[number];
+    material: (typeof MATERIALS.options)[number];
+    finish: (typeof FINISHES.options)[number];
   }>({
     color: COLORS[0],
     model: MODELS.options[0],
+    material: MATERIALS.options[0],
+    finish: FINISHES.options[0],
   });
 
   return (
@@ -111,10 +125,10 @@ const DesignConfigurator = ({
               Customize your case.
             </h2>
             {/* Seperator */}
-            <div className="w-full h-px bg-zinc-200 my-4" />
+            <div className="w-full h-px bg-zinc-200 my-6" />
 
             <div className="relative mt-4 h-full flex flex-col justify-between">
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-8">
                 {/* Color selector */}
                 <RadioGroup
                   value={options.color}
@@ -198,6 +212,75 @@ const DesignConfigurator = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+
+                {/* Material an Finish selector */}
+                {[MATERIALS, FINISHES].map(
+                  ({ name, options: selectableOptions }) => (
+                    <RadioGroup
+                      key={name}
+                      value={options[name]}
+                      onChange={(val) => {
+                        setOptions((prev) => ({
+                          ...prev,
+                          [name]: val,
+                          // [name] ==> dynamic notation because name is "material"|"finish" / TS thing
+                        }));
+                      }}
+                    >
+                      <Label>
+                        {/* Making first letter uppercase */}
+                        {name.slice(0, 1).toUpperCase() + name.slice(1)}
+                      </Label>
+                      <div className="mt-3 space-y-4">
+                        {selectableOptions.map((option) => (
+                          <Radio
+                            key={option.value}
+                            value={option}
+                            className={({ checked }) =>
+                              cn(
+                                "relative block cursor-pointer rounded-lg bg-white p-4 shadow-sm border-2 border-zinc-200 focus:outline-none ring-0 focus:ring-0 outline-none sm:flex sm:justify-between",
+                                {
+                                  "border-primary": checked,
+                                }
+                              )
+                            }
+                          >
+                            <span className="flex items-center">
+                              <span className="flex flex-col text-sm">
+                                <RadioGroupLabel
+                                  className="font-medium text-gray-900"
+                                  as="span"
+                                >
+                                  {option.label}
+                                </RadioGroupLabel>
+
+                                {option.description && (
+                                  <RadioGroupDescription
+                                    as="span"
+                                    className="text-gray-500"
+                                  >
+                                    <span className="block sm:inline">
+                                      {option.description}
+                                    </span>
+                                  </RadioGroupDescription>
+                                )}
+                              </span>
+                            </span>
+
+                            <RadioGroupDescription
+                              as="span"
+                              className="mt-2 flex text-sm sm:ml-4 sm:mt-0 sm:flex-col sm:text-right"
+                            >
+                              <span className="font-medium text-gray-900">
+                                {formatPrice(option.price)}
+                              </span>
+                            </RadioGroupDescription>
+                          </Radio>
+                        ))}
+                      </div>
+                    </RadioGroup>
+                  )
+                )}
               </div>
             </div>
           </div>
