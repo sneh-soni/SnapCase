@@ -29,15 +29,17 @@ import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, ChevronsUpDown } from "lucide-react";
 import { BASE_PRICE } from "@/config/products";
-import { saveConfiguration } from "./utils";
+import { saveImageConfig } from "./utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import { useToast } from "@/components/ui/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { OrderConfigArgs, saveOrderConfig } from "./actions";
+import { useRouter } from "next/navigation";
 
 export interface Dimensions {
   width: number;
   height: number;
 }
-
 export interface Position {
   x: number;
   y: number;
@@ -62,12 +64,10 @@ const DesignConfigurator = ({
     width: imageDimensions.width / 4,
     height: imageDimensions.height / 4,
   });
-
   const [renderedPosition, setRenderedPosition] = useState<Position>({
     x: 100,
     y: 150,
   });
-
   const [options, setOptions] = useState<{
     color: (typeof COLORS)[number];
     model: (typeof MODELS.options)[number];
@@ -82,9 +82,40 @@ const DesignConfigurator = ({
 
   const { startUpload } = useUploadThing("imageUploader");
   const { toast } = useToast();
+  const router = useRouter();
+  const { mutate: saveConfig } = useMutation({
+    mutationKey: ["save-config"],
+    mutationFn: async (args: OrderConfigArgs) => {
+      await Promise.all([
+        saveImageConfig(
+          phoneCaseRef,
+          containerRef,
+          renderedPosition,
+          renderedDimension,
+          imageName,
+          imageUrl,
+          configId,
+          startUpload,
+          toast
+        ),
+        saveOrderConfig(args),
+      ]);
+    },
+    onError: () => {
+      toast({
+        title: "Something went wrong",
+        description: "There was an error on our end. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSuccess: () => {
+      router.push(`/configure/preview?id=${configId}`);
+    },
+  });
 
   return (
     <div className="relative mt-20 grid grid-cols-1 lg:grid-cols-3 mb-16 pb-20">
+      {/* Image configuration section */}
       <div
         ref={containerRef}
         className="relative h-[38rem] overflow-hidden col-span-2 w-full max-w-4xl flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -354,17 +385,13 @@ const DesignConfigurator = ({
               </div>
               <Button
                 onClick={() =>
-                  saveConfiguration(
-                    phoneCaseRef,
-                    containerRef,
-                    renderedPosition,
-                    renderedDimension,
-                    imageName,
-                    imageUrl,
+                  saveConfig({
                     configId,
-                    startUpload,
-                    toast
-                  )
+                    color: options.color.value,
+                    finish: options.finish.value,
+                    material: options.material.value,
+                    model: options.model.value,
+                  })
                 }
                 size="sm"
                 className="w-full"

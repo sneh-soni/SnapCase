@@ -3,7 +3,7 @@ import { ClientUploadedFileData } from "uploadthing/types";
 import { Dimensions, Position } from "./DesignConfigurator";
 
 // Create and Save user configured image to uploadThing
-export async function saveConfiguration(
+export async function saveImageConfig(
   phoneCaseRef: React.RefObject<HTMLDivElement>,
   containerRef: React.RefObject<HTMLDivElement>,
   renderedPosition: Position,
