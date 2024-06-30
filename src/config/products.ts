@@ -3,13 +3,13 @@
 
 export const PRODUCT_PRICES = {
   material: {
-    silicone: 0, // No extra cost (default)
+    silicone: 0, // Free (default)
     polycarbonate: 300, // premium
   },
   finish: {
-    smooth: 0, // No extra cost (default)
+    smooth: 0, // Free (default)
     textured: 150, // premium
   },
 } as const;
 
-export const BASE_PRICE = 14_00;
+export const BASE_PRICE = 400;

@@ -10,6 +10,7 @@ datasource db {
 
 model Configuration {
   id String @id @default(cuid())
+  imageName String
   imageUrl String
   height Int
   width Int

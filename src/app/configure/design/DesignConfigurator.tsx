@@ -13,7 +13,7 @@ import {
 } from "@headlessui/react";
 import NextImage from "next/image";
 import { Rnd } from "react-rnd";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   COLORS,
   FINISHES,
@@ -27,19 +27,47 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { ArrowRight, Check, ChevronsUpDown } from "lucide-react";
+import { BASE_PRICE } from "@/config/products";
+import { saveConfiguration } from "./utils";
+import { useUploadThing } from "@/lib/uploadthing";
+import { useToast } from "@/components/ui/use-toast";
 
+export interface Dimensions {
+  width: number;
+  height: number;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
 interface DesignConfiguratorProps {
-  configId: string;
+  imageName: string;
   imageUrl: string;
+  configId: string;
   imageDimensions: { width: number; height: number };
 }
 
 const DesignConfigurator = ({
-  configId,
+  imageName,
   imageUrl,
+  configId,
   imageDimensions,
 }: DesignConfiguratorProps) => {
+  const phoneCaseRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [renderedDimension, setRenderedDimension] = useState<Dimensions>({
+    width: imageDimensions.width / 4,
+    height: imageDimensions.height / 4,
+  });
+
+  const [renderedPosition, setRenderedPosition] = useState<Position>({
+    x: 100,
+    y: 150,
+  });
+
   const [options, setOptions] = useState<{
     color: (typeof COLORS)[number];
     model: (typeof MODELS.options)[number];
@@ -52,14 +80,20 @@ const DesignConfigurator = ({
     finish: FINISHES.options[0],
   });
 
+  const { startUpload } = useUploadThing("imageUploader");
+  const { toast } = useToast();
+
   return (
     <div className="relative mt-20 grid grid-cols-1 lg:grid-cols-3 mb-16 pb-20">
-      <div className="relative h-[38rem] overflow-hidden col-span-2 w-full max-w-4xl flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+      <div
+        ref={containerRef}
+        className="relative h-[38rem] overflow-hidden col-span-2 w-full max-w-4xl flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      >
         {/* phone template and resize n drag image , aspect ratio of /phone-template.png = 896/1831 */}
-
         <div className="relative w-60 bg-opacity-50 pointer-events-none aspect-[896/1831]">
           {/* AspectRatio locks the aspect ratio on every width device */}
           <AspectRatio
+            ref={phoneCaseRef}
             ratio={896 / 1831}
             className="pointer-events-none relative z-50 aspect-[896/1831] w-full"
           >
@@ -86,12 +120,28 @@ const DesignConfigurator = ({
         {/* rnd user image */}
         <Rnd
           default={{
-            x: 180, //initial position
-            y: 200,
-            height: imageDimensions.height / 4, //initial dimensions
+            x: 100, //initial position
+            y: 150,
+            //initial dimensions since user image dimensions too large
+            height: imageDimensions.height / 4,
             width: imageDimensions.width / 4,
           }}
           className="absolute z-20 border-2 border-primary"
+          onResizeStop={(_, __, ref, ___, { x, y }) => {
+            setRenderedDimension({
+              // eg. ref.style.height = "100px" (string),
+              // therefore slice(0,-2) to remove 'px',
+              // and then parse them to int
+              height: parseInt(ref.style.height.slice(0, -2)),
+              width: parseInt(ref.style.width.slice(0, -2)),
+            });
+
+            setRenderedPosition({ x, y });
+          }}
+          onDragStop={(_, data) => {
+            const { x, y } = data;
+            setRenderedPosition({ x, y });
+          }}
           lockAspectRatio
           resizeHandleComponent={{
             bottomRight: <HandleComponent side="bottom-right" />,
@@ -112,6 +162,7 @@ const DesignConfigurator = ({
         </Rnd>
       </div>
 
+      {/* Customize your case  */}
       <div className="h-[38rem] w-full col-span-full lg:col-span-1 flex flex-col bg-white">
         <ScrollArea className="relative flex-1 overflow-auto">
           {/* Gradient decoration div */}
@@ -120,15 +171,15 @@ const DesignConfigurator = ({
             className="absolute z-10 inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white pointer-events-none"
           />
 
-          <div className="px-8 pb-12 pt-8">
+          <div className="px-8 pb-12 pt-4">
             <h2 className="tracking-tight font-bold text-3xl">
               Customize your case.
             </h2>
             {/* Seperator */}
-            <div className="w-full h-px bg-zinc-200 my-6" />
+            <div className="w-full h-px bg-zinc-200 my-4" />
 
             <div className="relative mt-4 h-full flex flex-col justify-between">
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-6">
                 {/* Color selector */}
                 <RadioGroup
                   value={options.color}
@@ -245,6 +296,7 @@ const DesignConfigurator = ({
                               )
                             }
                           >
+                            {/* Label and description */}
                             <span className="flex items-center">
                               <span className="flex flex-col text-sm">
                                 <RadioGroupLabel
@@ -267,6 +319,7 @@ const DesignConfigurator = ({
                               </span>
                             </span>
 
+                            {/* option Price */}
                             <RadioGroupDescription
                               as="span"
                               className="mt-2 flex text-sm sm:ml-4 sm:mt-0 sm:flex-col sm:text-right"
@@ -285,6 +338,43 @@ const DesignConfigurator = ({
             </div>
           </div>
         </ScrollArea>
+
+        <div className="w-full px-8 h-16 bg-white">
+          {/* seperator */}
+          <div className="h-px w-full bg-zinc-200" />
+
+          {/* Price and continue button */}
+          <div className="w-full h-full flex justify-end items-center">
+            <div className="w-full flex gap-6 items-center">
+              <div className="font-medium whitespace-nowrap flex flex-col">
+                <p className="text-xs text-gray-500">Total</p>
+                {formatPrice(
+                  BASE_PRICE + options.finish.price + options.material.price
+                )}
+              </div>
+              <Button
+                onClick={() =>
+                  saveConfiguration(
+                    phoneCaseRef,
+                    containerRef,
+                    renderedPosition,
+                    renderedDimension,
+                    imageName,
+                    imageUrl,
+                    configId,
+                    startUpload,
+                    toast
+                  )
+                }
+                size="sm"
+                className="w-full"
+              >
+                Continue
+                <ArrowRight className="h-4 w-4 ml-1.5 inline" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
