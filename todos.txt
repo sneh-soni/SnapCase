@@ -1,0 +1,2 @@
+go back button on every step
+dialog box after preview step to confirm if user is sure to proceed to payment
