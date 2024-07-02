@@ -31,8 +31,6 @@ export const createCheckoutSession = async ({
   const { finish, material, model } = configuration;
   const modelLabel = model?.replace("iphone", "iPhone ");
 
-  console.log(modelLabel);
-
   //  Calculate price ==> Never pass as prop from client component as user can manipulate it
   //  Hence, not passed from DesignPreview, but recalculated here on the server
   let price = BASE_PRICE;
@@ -64,7 +62,7 @@ export const createCheckoutSession = async ({
 
   // Create product or order for stripe
   const product = await stripe.products.create({
-    name: `Your custom ${modelLabel} case by SnapCase`,
+    name: `SnapCase | Your custom ${modelLabel} case.`,
     images: [configuration.imageUrl],
     default_price_data: {
       currency: "INR",
