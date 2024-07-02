@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,7 +8,7 @@ datasource db {
 }
 
 // enum ==> list of valid entries
-enum OrderStatus{
+enum OrderStatus {
   fullfilled
   shipped
   awaiting_shipment
@@ -40,15 +39,67 @@ enum CaseColor {
   rose
   stone
 }
+
 model Configuration {
-  id String @id @default(cuid())
-  imageName String
-  imageUrl String
-  height Int
-  width Int
+  id              String        @id @default(cuid())
+  imageName       String
+  imageUrl        String
+  height          Int
+  width           Int
   croppedImageUrl String?
   color           CaseColor?
   model           PhoneModel?
   material        CaseMaterial?
   finish          CaseFinish?
+  Order           Order[]
+}
+
+model User {
+  id    String  @id @default(cuid())
+  email String
+  Order Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                String           @id @default(cuid())
+  configurationId   String
+  configuration     Configuration    @relation(fields: [configurationId], references: [id])
+  user              User             @relation(fields: [userId], references: [id])
+  userId            String
+  amount            Float
+  isPaid            Boolean          @default(false)
+  status            OrderStatus      @default(awaiting_shipment)
+  shippingAddressId String?
+  shippingAddress   ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
+  billingAddress    BillingAddress?  @relation(fields: [billingAddressId], references: [id])
+  billingAddressId  String?
+  createAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShippingAddress {
+  id          String  @id @default(cuid())
+  name        String
+  street      String
+  city        String
+  postalCode  String
+  country     String
+  state       String?
+  phoneNumber String?
+  orders      Order[]
+}
+
+model BillingAddress {
+  id          String  @id @default(cuid())
+  name        String
+  street      String
+  city        String
+  postalCode  String
+  country     String
+  state       String?
+  phoneNumber String?
+  orders      Order[]
 }
