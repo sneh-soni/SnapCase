@@ -23,7 +23,6 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  useEffect(() => setShowConfetti(true));
 
   const { id, color, model, finish, material } = configuration;
   const tw = COLORS.find(
@@ -37,6 +36,8 @@ const DesignPreview = ({ configuration }: { configuration: Configuration }) => {
   if (material === "polycarbonate")
     totalPrice += PRODUCT_PRICES.material.polycarbonate;
   if (finish === "textured") totalPrice += PRODUCT_PRICES.finish.textured;
+
+  useEffect(() => setShowConfetti(true), []);
 
   const { mutate: createPaymentSession } = useMutation({
     mutationKey: ["get-checkout-session"],
