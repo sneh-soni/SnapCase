@@ -76,6 +76,7 @@ export const createCheckoutSession = async ({
     cancel_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/configure/preview?id=${configuration.id}`, // Redirect url after cancel
     payment_method_types: ["card"],
     mode: "payment",
+    // Requires user to provide shipping address
     shipping_address_collection: { allowed_countries: ["IN"] }, // Allowed in countries
     metadata: {
       // For stripe webhook to get user and order
