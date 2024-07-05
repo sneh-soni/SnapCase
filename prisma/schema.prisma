@@ -9,9 +9,9 @@ datasource db {
 
 // enum ==> list of valid entries
 enum OrderStatus {
-  fullfilled
-  shipped
   awaiting_shipment
+  shipped
+  fullfilled
 }
 
 enum PhoneModel {
@@ -76,7 +76,7 @@ model Order {
   shippingAddress   ShippingAddress? @relation(fields: [shippingAddressId], references: [id])
   billingAddress    BillingAddress?  @relation(fields: [billingAddressId], references: [id])
   billingAddressId  String?
-  createAt DateTime @default(now())
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
