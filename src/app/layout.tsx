@@ -5,13 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import type { Metadata } from "next";
 import { Recursive } from "next/font/google";
 import "./globals.css";
+import { constructMetadata } from "@/lib/utils";
 
 const recursive = Recursive({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Snapcase",
-  description: "Get your custom phone case.",
-};
+export const metadata = constructMetadata();
 
 export default function RootLayout({
   children,
