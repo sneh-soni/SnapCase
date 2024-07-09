@@ -3,8 +3,10 @@ import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { Resend } from "resend";
+import OrderReceivedEmail from "@/components/email/OrderReceivedEmail";
 
-// add `@ts-ignore` as comment above the line of error if you want ts to ignore that error //
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
@@ -78,6 +80,27 @@ export async function POST(req: Request) {
             },
           },
         },
+      });
+
+      // Send Order confirmed and thank you email to user
+      await resend.emails.send({
+        from: "snapcase <ssneh20062003@gmail.com>",
+        to: [event.data.object.customer_details.email],
+        subject: "Thank you for your Order!",
+        // react: receives react-email component
+        react: OrderReceivedEmail({
+          orderId,
+          orderDate: updatedOrder.createdAt.toLocaleDateString(),
+          // @ts-ignore
+          shippingAddress: {
+            name: session.customer_details!.name!,
+            city: shippingAddress!.city!,
+            country: shippingAddress!.country!,
+            postalCode: shippingAddress!.postal_code!,
+            street: shippingAddress!.line1!,
+            state: shippingAddress!.state,
+          },
+        }),
       });
     }
 

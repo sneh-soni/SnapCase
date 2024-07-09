@@ -6,6 +6,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { ArrowRight, Check, Star } from "lucide-react";
 import Link from "next/link";
 
+// add `@ts-ignore` as comment above the line of error if you want ts to ignore the following error //
+
 export default function Home() {
   return (
     <div className="bg-slate-50">
