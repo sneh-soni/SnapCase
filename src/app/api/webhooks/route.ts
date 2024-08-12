@@ -1,12 +1,11 @@
+import OrderReceivedEmail from "@/components/email/OrderReceivedEmail";
 import { db } from "@/db";
 import { stripe } from "@/lib/stripe";
+import { render } from "@react-email/components";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 import Stripe from "stripe";
-import { Resend } from "resend";
-import OrderReceivedEmail from "@/components/email/OrderReceivedEmail";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
@@ -83,12 +82,15 @@ export async function POST(req: Request) {
       });
 
       // Send Order confirmed and thank you email to user
-      await resend.emails.send({
-        from: "snapcase <ssneh20062003@gmail.com>",
-        to: [event.data.object.customer_details.email],
-        subject: "Thank you for your Order!",
-        // react: receives react-email component
-        react: OrderReceivedEmail({
+      const transporter = nodemailer.createTransport({
+        auth: {
+          user: "ssneh20062003@gmail.com",
+          pass: "zkjiwvqlopgkuwxs",
+        },
+      });
+
+      const emailHTML = render(
+        OrderReceivedEmail({
           orderId,
           orderDate: updatedOrder.createdAt.toLocaleDateString(),
           // @ts-ignore
@@ -100,8 +102,24 @@ export async function POST(req: Request) {
             street: shippingAddress!.line1!,
             state: shippingAddress!.state,
           },
-        }),
-      });
+        })
+      );
+
+      await transporter.sendMail(
+        {
+          from: "snapcase <ssneh20062003@gmail.com>",
+          to: [event.data.object.customer_details.email],
+          subject: "Thank you for your Order!",
+          html: emailHTML,
+        },
+        (err, info) => {
+          if (err) {
+            console.error("Error sending email:", err);
+          } else {
+            console.log("Email sent:", info);
+          }
+        }
+      );
     }
 
     // Return success response
